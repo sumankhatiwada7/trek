@@ -9,28 +9,27 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-public function up(): void
-{
-    Schema::create('trek_images', function (Blueprint $table) {
-        $table->id();
-        $table->unsignedBigInteger('trek_id'); // must exist
-        $table->string('photo');
-        $table->timestamps();
-
-        $table->foreign('trek_id')
+    public function up(): void
+    {
+        schema::create('itinerary', function (Blueprint $table) {
+            $table->id();
+            $table->unsignedBigInteger('trek_id');
+            $table->string('day');
+            $table->string('title');
+            $table->text('description');
+            $table->foreign('trek_id')
               ->references('id') // references column 'id' in treks
               ->on('treks')
               ->onDelete('cascade');
-    });
-}
-
-
+            $table->timestamps();
+        });
+    }
 
     /**
      * Reverse the migrations.
      */
     public function down(): void
     {
-        //
+        
     }
 };

@@ -17,10 +17,11 @@ return new class extends Migration
             $table->string('region');
             $table->string('difficultylevel');
             $table->string('duration');
-            $table->decimal('latitude', 10, 7);
-            $table->decimal('longitude', 10, 7);
+            $table->string('group_size');
             $table->text('description')->nullable();
-            $table->string('image_url');
+            $table->string('elevation');
+            $table->string('season');
+           
             $table->text('map_route')->nullable();
             $table->timestamps();
         });

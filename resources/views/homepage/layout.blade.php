@@ -12,8 +12,10 @@
    
 
     <x-navbar />
-    @yield('content')
-    
+   
+    <x-herosection />
+    <x-trails />
+    <x-mapsection />
     <x-footer/>
    
    
