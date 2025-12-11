@@ -15,6 +15,10 @@ return new class extends Migration
             $table->id();
             $table->string('trekname');
             $table->string('region');
+            $table->string('latitude');
+            $table->string('longitude');
+            $table->integer('price');
+            $table->string('tagline');
             $table->string('difficultylevel');
             $table->string('duration');
             $table->string('group_size');

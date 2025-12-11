@@ -16,6 +16,10 @@ class trek extends Model
         'description',
         'group_size',
         'map_route',
+        'latitude',
+        'longitude',
+        'price',
+        'tagline',
     ];
     public function trekImages(){
         return $this->hasMany(trek_images::class,'trek_id');

@@ -21,20 +21,48 @@
     /* itinerary collapse animation */
     .collapse-enter { max-height: 0; overflow: hidden; transition: max-height 300ms ease; }
     .collapse-enter.open { max-height: 2000px; }
+    
+    /* Add fade-in animation for images */
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800 antialiased">
 
   @php
     use Illuminate\Support\Facades\Storage;
-    $heroImage = optional($trek->trekImages->sortBy('id')->first())->image_path;
+    use Illuminate\Support\Facades\File;
+    
+    // Get hero image - handle null case
+    $heroImage = optional($trek->trekImages->sortBy('id')->first())->photo ?? optional($trek->trekImages->sortBy('id')->first())->image_path;
+    $heroImageUrl = null;
+    
+    if ($heroImage) {
+        // Try Storage::url first (for 'trek_images/...' paths)
+        $heroImageUrl = Storage::url($heroImage);
+        
+        // If that doesn't work, try asset path
+        if (!$heroImageUrl || !filter_var($heroImageUrl, FILTER_VALIDATE_URL)) {
+            $heroImageUrl = asset('storage/' . $heroImage);
+        }
+    }
+    
+    // Fallback to a default image
+    $defaultHeroImage = asset('images/alpine.png');
+    $finalHeroImage = $heroImageUrl ?: $defaultHeroImage;
   @endphp
 
   <div class="min-h-screen">
 
     <!-- HERO -->
     <section class="relative h-[85vh] min-h-[600px] overflow-hidden">
-      <div class="absolute inset-0 bg-cover bg-center" style="background-image:url('{{ $heroImage ? Storage::url($heroImage) : asset('image/alpine.png') }}')">
+      <div class="absolute inset-0 bg-cover bg-center bg-no-repeat" style="background-image:url('{{ $finalHeroImage }}'); background-attachment: fixed;">
         <div class="absolute inset-0 bg-gradient-hero"></div>
       </div>
 
@@ -65,12 +93,12 @@
             </div>
 
             <div class="flex flex-wrap gap-4">
-              <button class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700">
+              <button class="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700 transition-colors">
                 Book This Trek
                 <i data-lucide="chevron-right" class="w-5 h-5"></i>
               </button>
 
-              <button class="inline-flex items-center gap-2 rounded-lg border border-white/40 bg-white/10 px-6 py-3 text-white hover:bg-white hover:text-black transition">
+              <button class="inline-flex items-center gap-2 rounded-lg border border-white/40 bg-white/10 px-6 py-3 text-white hover:bg-white hover:text-black transition-colors">
                 Download Itinerary
               </button>
             </div>
@@ -83,7 +111,7 @@
     <section class="-mt-12 relative z-20 pb-16">
       <div class="container mx-auto px-4">
         <div class="grid grid-cols-2 gap-4 md:grid-cols-4 lg:grid-cols-6">
-          <!-- Reusable stat -->
+          <!-- Duration -->
           <div class="flex flex-col items-center gap-2 rounded-xl bg-white p-4 shadow-soft transition hover:shadow-elevated">
             <div class="rounded-full bg-blue-50 p-3">
               <i data-lucide="clock" class="w-5 h-5 text-blue-600"></i>
@@ -92,6 +120,7 @@
             <span class="font-serif text-lg font-semibold text-gray-800">{{ $trek->duration ?? 'N/A' }}</span>
           </div>
 
+          <!-- Max Elevation -->
           <div class="flex flex-col items-center gap-2 rounded-xl bg-white p-4 shadow-soft transition hover:shadow-elevated">
             <div class="rounded-full bg-blue-50 p-3">
               <i data-lucide="trending-up" class="w-5 h-5 text-blue-600"></i>
@@ -100,6 +129,7 @@
             <span class="font-serif text-lg font-semibold text-gray-800">{{ $trek->elevation ?? 'N/A' }}</span>
           </div>
 
+          <!-- Difficulty -->
           <div class="flex flex-col items-center gap-2 rounded-xl bg-white p-4 shadow-soft transition hover:shadow-elevated">
             <div class="rounded-full bg-blue-50 p-3">
               <i data-lucide="mountain" class="w-5 h-5 text-blue-600"></i>
@@ -108,6 +138,7 @@
             <span class="font-serif text-lg font-semibold text-gray-800">{{ $trek->difficultylevel ?? 'N/A' }}</span>
           </div>
 
+          <!-- Best Season -->
           <div class="flex flex-col items-center gap-2 rounded-xl bg-white p-4 shadow-soft transition hover:shadow-elevated">
             <div class="rounded-full bg-blue-50 p-3">
               <i data-lucide="calendar" class="w-5 h-5 text-blue-600"></i>
@@ -116,6 +147,7 @@
             <span class="font-serif text-lg font-semibold text-gray-800">{{ $trek->season ?? 'N/A' }}</span>
           </div>
 
+          <!-- Group Size -->
           <div class="flex flex-col items-center gap-2 rounded-xl bg-white p-4 shadow-soft transition hover:shadow-elevated">
             <div class="rounded-full bg-blue-50 p-3">
               <i data-lucide="users" class="w-5 h-5 text-blue-600"></i>
@@ -159,20 +191,210 @@
       </div>
     </section>
 
-    <!-- GALLERY -->
-    <section class="bg-gray-100 py-16">
+    <!-- WEATHER SECTION -->
+    <section class="bg-gradient-to-br from-blue-50 to-cyan-50 py-16">
       <div class="container mx-auto px-4">
-        <h2 class="mb-8 text-center font-serif text-3xl font-bold text-gray-900 md:text-4xl">Gallery</h2>
-        <div class="grid gap-4 md:grid-cols-3">
-          @php $gallery = $trek->trekImages->take(6); @endphp
-          @forelse($gallery as $image)
-          <div class="group aspect-[4/3] overflow-hidden rounded-xl shadow-soft transition hover:shadow-elevated">
-            <img src="{{ Storage::url($image->image_path) }}" alt="{{ $trek->trekname }} image" class="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105">
+        <h2 class="mb-8 text-center font-serif text-3xl font-bold text-gray-900 md:text-4xl">
+          Current Weather
+        </h2>
+
+        @if(isset($weatherData['error']))
+          <div class="rounded-xl bg-white p-8 text-center shadow-soft max-w-md mx-auto">
+            <i data-lucide="cloud-off" class="w-12 h-12 mx-auto text-gray-400 mb-3"></i>
+            <p class="text-gray-600">{{ $weatherData['error'] }}</p>
           </div>
+        @elseif(isset($weatherData['current']))
+          <div class="max-w-4xl mx-auto">
+            <!-- Location Card -->
+            <div class="bg-white rounded-xl shadow-soft p-6 mb-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xl font-bold text-gray-900">{{ $weatherData['location']['name'] }}</h3>
+                  <p class="text-gray-600">
+                    {{ $weatherData['location']['region'] }}, {{ $weatherData['location']['country'] }}
+                  </p>
+                </div>
+                <div class="text-right">
+                  <p class="text-sm text-gray-500">Updated just now</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Main Weather Card -->
+            <div class="bg-white rounded-xl shadow-soft p-8">
+              <div class="flex flex-col md:flex-row items-center justify-between gap-8">
+                
+                <!-- Weather Condition & Temperature -->
+                <div class="text-center md:text-left">
+                  <div class="flex items-center justify-center md:justify-start gap-6 mb-4">
+                    @if($weatherData['current']['condition_icon'])
+                      <img src="{{ $weatherData['current']['condition_icon'] }}" 
+                           alt="{{ $weatherData['current']['condition_text'] }}" 
+                           class="w-28 h-28 fade-in">
+                    @endif
+                    <div>
+                      <p class="text-6xl font-bold text-gray-900">{{ round($weatherData['current']['temp_c']) }}°C</p>
+                      <p class="text-xl text-gray-600 mt-2">{{ $weatherData['current']['condition_text'] }}</p>
+                      <p class="text-gray-500">Feels like {{ round($weatherData['current']['feelslike_c']) }}°C</p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Weather Details Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-4 flex-1">
+                  <div class="text-center p-4 bg-blue-50 rounded-lg">
+                    <i data-lucide="droplets" class="w-6 h-6 mx-auto text-blue-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-600">Humidity</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $weatherData['current']['humidity'] }}%</p>
+                  </div>
+                  
+                  <div class="text-center p-4 bg-teal-50 rounded-lg">
+                    <i data-lucide="wind" class="w-6 h-6 mx-auto text-teal-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-600">Wind Speed</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $weatherData['current']['wind_kph'] }} km/h</p>
+                    @if($weatherData['current']['wind_dir'])
+                      <p class="text-xs text-gray-500">{{ $weatherData['current']['wind_dir'] }}</p>
+                    @endif
+                  </div>
+                  
+                  <div class="text-center p-4 bg-purple-50 rounded-lg">
+                    <i data-lucide="gauge" class="w-6 h-6 mx-auto text-purple-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-600">Pressure</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $weatherData['current']['pressure_mb'] }} mb</p>
+                  </div>
+                  
+                  <div class="text-center p-4 bg-green-50 rounded-lg">
+                    <i data-lucide="eye" class="w-6 h-6 mx-auto text-green-500 mb-2"></i>
+                    <p class="text-sm font-semibold text-gray-600">Visibility</p>
+                    <p class="text-xl font-bold text-gray-900">{{ $weatherData['current']['vis_km'] }} km</p>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Additional Weather Info -->
+              <div class="mt-8 grid grid-cols-2 gap-4">
+                @if($weatherData['current']['precip_mm'] > 0)
+                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <i data-lucide="cloud-rain" class="w-5 h-5 text-blue-400 mr-3"></i>
+                  <div>
+                    <p class="text-sm text-gray-600">Precipitation</p>
+                    <p class="font-semibold">{{ $weatherData['current']['precip_mm'] }} mm</p>
+                  </div>
+                </div>
+                @endif
+                
+                @if($weatherData['current']['cloud'] > 0)
+                <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                  <i data-lucide="cloud" class="w-5 h-5 text-gray-400 mr-3"></i>
+                  <div>
+                    <p class="text-sm text-gray-600">Cloud Cover</p>
+                    <p class="font-semibold">{{ $weatherData['current']['cloud'] }}%</p>
+                  </div>
+                </div>
+                @endif
+              </div>
+              
+              <!-- Trekking Tips -->
+              <div class="mt-8 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <div class="flex items-start">
+                  <i data-lucide="info" class="w-5 h-5 text-yellow-600 mt-0.5 mr-3"></i>
+                  <div>
+                    <h4 class="font-semibold text-yellow-800 mb-1">Trekking Tips Based on Current Weather</h4>
+                    <ul class="text-sm text-yellow-700 space-y-1">
+                      @if($weatherData['current']['temp_c'] < 10)
+                      <li>• Temperatures below 10°C: Wear thermal layers</li>
+                      @elseif($weatherData['current']['temp_c'] > 25)
+                      <li>• Temperatures above 25°C: Stay hydrated, wear sun protection</li>
+                      @endif
+                      
+                      @if($weatherData['current']['humidity'] > 70)
+                      <li>• High humidity: Pace yourself, drink extra water</li>
+                      @endif
+                      
+                      @if($weatherData['current']['wind_kph'] > 20)
+                      <li>• Windy conditions: Secure loose items, be cautious on ridges</li>
+                      @endif
+                      
+                      @if($weatherData['current']['precip_mm'] > 5)
+                      <li>• Rain expected: Waterproof gear recommended</li>
+                      @endif
+                      
+                      @if($weatherData['current']['vis_km'] < 5)
+                      <li>• Limited visibility: Stay on marked trails</li>
+                      @endif
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        @else
+          <div class="text-center py-12">
+            <p class="text-gray-500">Weather data not available for this trek.</p>
+          </div>
+        @endif
+      </div>
+    </section>
+
+    <!-- GALLERY -->
+    <section class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-20">
+      <div class="container mx-auto px-4">
+        <!-- Header -->
+        <div class="mb-12">
+          <div class="flex items-center gap-3 mb-3">
+            <i data-lucide="images" class="w-8 h-8 text-green-400"></i>
+            <span class="text-green-400 font-semibold text-sm uppercase tracking-widest">Photo Gallery</span>
+          </div>
+          <h2 class="text-4xl md:text-5xl font-bold text-white mb-4">Experience the Beauty</h2>
+          <p class="text-lg text-gray-300 max-w-2xl">Discover stunning moments from {{ $trek->trekname }}. Each image tells a story of adventure and natural wonder.</p>
+        </div>
+
+        <!-- Gallery Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          @forelse($trek->trekImages as $index => $image)
+            <div class="group relative overflow-hidden rounded-2xl shadow-xl transition-all duration-500 {{ $index === 0 ? 'md:col-span-2 md:row-span-2' : '' }}">
+              <!-- Image -->
+              <img 
+                src="{{ asset('storage/' . $image->photo) }}" 
+                alt="Trek Photo"
+                class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                style="{{ $index === 0 ? 'aspect-ratio: 2/2' : 'aspect-ratio: 1/1' }}"
+              >
+              
+              <!-- Overlay -->
+              <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex items-end justify-between p-6">
+                <div class="flex-1">
+                  <p class="text-white font-semibold text-lg mb-1">Photo #{{ $index + 1 }}</p>
+                  <p class="text-gray-300 text-sm flex items-center gap-2">
+                    <i data-lucide="mountain" class="w-4 h-4"></i>
+                    {{ $trek->trekname }}
+                  </p>
+                </div>
+                <button class="bg-green-500 hover:bg-green-600 text-white p-3 rounded-full transition-all duration-300 transform group-hover:scale-110">
+                  <i data-lucide="expand" class="w-5 h-5"></i>
+                </button>
+              </div>
+
+              <!-- Badge -->
+              @if($index === 0)
+                <div class="absolute top-4 left-4 z-10 bg-green-500 text-white px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-2">
+                  <i data-lucide="star" class="w-4 h-4 fill-white"></i>
+                  Featured
+                </div>
+              @endif
+            </div>
           @empty
-          <p class="text-center text-muted-foreground col-span-3">No images available.</p>
+            <div class="col-span-full py-16">
+              <div class="text-center">
+                <i data-lucide="image-off" class="w-16 h-16 mx-auto text-gray-400 mb-4"></i>
+                <p class="text-gray-400 text-lg">No photos available for this trek yet.</p>
+              </div>
+            </div>
           @endforelse
         </div>
+
+       
+       
       </div>
     </section>
 
@@ -202,7 +424,7 @@
 
     <!-- BOOKING CTA -->
     <section class="relative overflow-hidden py-20">
-      <div class="absolute inset-0 bg-cover bg-center" style="background-image: url('./images/trek-camp.jpg')">
+      <div class="absolute inset-0 bg-cover bg-center fade-in" style="background-image: url('https://images.unsplash.com/photo-1536152470826-0d7162a72f8b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80')">
         <div class="absolute inset-0 bg-black/70"></div>
       </div>
 
@@ -222,7 +444,7 @@
             </p>
           </div>
 
-          <button class="sm:ml-8 inline-flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-white hover:bg-yellow-600">
+          <button class="sm:ml-8 inline-flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-white hover:bg-yellow-600 transition-colors">
             Book Now
             <i data-lucide="chevron-right" class="w-5 h-5"></i>
           </button>
@@ -249,24 +471,50 @@
       const collapseBtn = document.getElementById('collapseItinerary');
       const fullItinerary = document.getElementById('full-itinerary');
 
-      toggleBtn.addEventListener('click', function () {
-        fullItinerary.classList.add('open');
-        fullItinerary.style.maxHeight = fullItinerary.scrollHeight + 'px';
-        toggleBtn.classList.add('hidden');
-        collapseBtn.classList.remove('hidden');
-      });
+      if (toggleBtn) {
+        toggleBtn.addEventListener('click', function () {
+          fullItinerary.classList.add('open');
+          fullItinerary.style.maxHeight = fullItinerary.scrollHeight + 'px';
+          toggleBtn.classList.add('hidden');
+          collapseBtn.classList.remove('hidden');
+        });
+      }
 
-      collapseBtn.addEventListener('click', function () {
-        fullItinerary.style.maxHeight = 0;
-        fullItinerary.classList.remove('open');
-        collapseBtn.classList.add('hidden');
-        toggleBtn.classList.remove('hidden');
-        // scroll back to itinerary top for better UX
-        setTimeout(() => {
-          fullItinerary.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 200);
-      });
+      if (collapseBtn) {
+        collapseBtn.addEventListener('click', function () {
+          fullItinerary.style.maxHeight = 0;
+          fullItinerary.classList.remove('open');
+          collapseBtn.classList.add('hidden');
+          toggleBtn.classList.remove('hidden');
+          // scroll back to itinerary top for better UX
+          setTimeout(() => {
+            fullItinerary.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 200);
+        });
+      }
     })();
+
+    // Image lazy loading enhancement
+    document.addEventListener('DOMContentLoaded', function() {
+      const images = document.querySelectorAll('img');
+      
+      images.forEach(img => {
+        // If image fails to load, set a placeholder
+        img.addEventListener('error', function() {
+          this.src = 'https://via.placeholder.com/800x600?text=Image+Not+Available';
+          this.classList.add('fade-in');
+        });
+        
+        // Add fade-in when loaded
+        if (img.complete) {
+          img.classList.add('fade-in');
+        } else {
+          img.addEventListener('load', function() {
+            this.classList.add('fade-in');
+          });
+        }
+      });
+    });
   </script>
 </body>
 </html>

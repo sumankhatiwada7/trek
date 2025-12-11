@@ -207,6 +207,18 @@
                                         <input id="group_size" name="group_size" type="text"
                                             placeholder="e.g., 2-12 people" class="input" maxlength="20" />
                                     </div>
+
+                                    <div class="space-y-2">
+                                        <label for="latitude" class="label">Latitude</label>
+                                        <input id="latitude" name="latitude" type="number" step="0.0001"
+                                            placeholder="e.g., 28.5921" class="input" />
+                                    </div>
+
+                                    <div class="space-y-2">
+                                        <label for="longitude" class="label">Longitude</label>
+                                        <input id="longitude" name="longitude" type="number" step="0.0001"
+                                            placeholder="e.g., 86.5882" class="input" />
+                                    </div>
                                 </div>
                             </div>
                         </div>

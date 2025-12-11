@@ -5,6 +5,8 @@ use App\Models\trek;
 use App\Models\highlights;
 use App\Models\itinerary;
 use Illuminate\Http\Request;
+use App\Helpers\ImageHelper;
+
 
 class AdminController extends Controller
 {
@@ -30,11 +32,10 @@ class AdminController extends Controller
             'group_size' => 'required|string|max:255',
             'elevation' => 'required|string|max:255',
             'season' => 'required|string|max:255',
-            // Fields in form but NOT in your current trek model's $fillable:
-            // 'tagline' is missing.
-            // 'price' is missing.
-            // 'status' is missing.
-            // If you want to save them, uncomment and add to $fillable (see next section).
+           'latitude' => 'required|string|max:255',
+           'longitude' => 'required|string|max:255',
+           'price' => 'required|integer',
+           'tagline' => 'required|string|max:255',
         ]);
         
         // 2. Validate Relational Data Structure
