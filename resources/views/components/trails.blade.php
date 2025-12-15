@@ -97,10 +97,12 @@
 
     <!-- View All CTA -->
     <div class="text-center mt-12">
+      <a href="{{route('treks.index') }}" >
       <button class="px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:shadow-lg transition flex items-center gap-2 mx-auto font-semibold">
         <i data-lucide="compass" class="w-5 h-5"></i>
         View All Adventures
       </button>
+      </a>
     </div>
 
   </div>

@@ -16,7 +16,7 @@
       <div class="hidden md:flex items-center gap-8">
         <a href="/" class="text-gray-600 hover:text-green-700 transition font-medium">Home</a>
         <a href="{{ route('treks.index') }}" class="text-gray-600 hover:text-green-700 transition font-medium">Treks</a>
-        <a href="/destinations" class="text-gray-600 hover:text-green-700 transition font-medium">Destinations</a>
+        <a href="{{ route('front.destinations')}}" class="text-gray-600 hover:text-green-700 transition font-medium">Destinations</a>
         <a href="/about" class="text-gray-600 hover:text-green-700 transition font-medium">About</a>
         <a href="/contact" class="text-gray-600 hover:text-green-700 transition font-medium">Contact</a>
       </div>
