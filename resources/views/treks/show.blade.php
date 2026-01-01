@@ -444,10 +444,10 @@
             </p>
           </div>
 
-          <button class="sm:ml-8 inline-flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-white hover:bg-yellow-600 transition-colors">
+          <a href="{{ route('booking.form') }}" class="sm:ml-8 inline-flex items-center gap-2 rounded-lg bg-yellow-500 px-6 py-3 font-semibold text-white hover:bg-yellow-600 transition-colors">
             Book Now
             <i data-lucide="chevron-right" class="w-5 h-5"></i>
-          </button>
+          </a>
         </div>
       </div>
     </section>

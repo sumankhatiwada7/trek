@@ -50,4 +50,8 @@ class DestinationController extends Controller
         $destinations = destination::latest()->get();
         return view('destination.Destination', compact('destinations'));
     }
+    public function list($id){
+        $destination = destination::findOrFail($id);
+        return ($destination);
+    }
 }

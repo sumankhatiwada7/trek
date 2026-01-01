@@ -17,6 +17,7 @@ Route::get('/homepage', function () {
 Route::controller(TrekController::class)->group(function () {
     route::get('/treks','index')->name('treks.index');
     route::get('/treks/{id}','show')->name('treks.show');
+    route::get('/booking','booking')->name('booking.form');
 });
  //Route::get('/dashboard','index')->name('admin');
 

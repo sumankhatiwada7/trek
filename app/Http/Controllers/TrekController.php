@@ -79,6 +79,24 @@ public function show($id)
             return ['error' => 'Weather service temporarily unavailable'];
         }
     }
+
+    public function list(){
+        return trek::all();
+    }
+    public function booking(){
+        $treks = trek::select(
+            'id',
+            'trekname',
+            'duration',
+            'region',
+            'difficultylevel',
+            'elevation',
+            'price'
+        )->get();
+
+        return view('booking.bookingform', compact('treks'));
+    }
+    
 }
 
 
