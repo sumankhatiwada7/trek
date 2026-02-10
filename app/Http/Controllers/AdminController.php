@@ -11,11 +11,12 @@ use App\Helpers\ImageHelper;
 class AdminController extends Controller
 {
     public function index(){
-        $treks = trek::all();
+        $treks = trek::withCount('bookings')->get();
         return view("admin.index", compact('treks'));
     }
     public function create(){
-        return view("admin.create");
+        $destinations = \App\Models\destination::all();
+        return view("admin.create", compact('destinations'));
     }
 
     // Removed the unused $id parameter from the method signature
@@ -25,10 +26,10 @@ class AdminController extends Controller
         // NOTE: These fields must be present in your App\Models\trek $fillable array.
         $validatedTrekData = $request->validate([
             'trekname' => 'required|string|max:255',
-            'duration' => 'required|string|max:20', // Changed to string to allow '14 Days' format
+            'duration' => 'required|string|max:20',
             'description' => 'required|string',
             'region' => 'required|string|max:255',
-            'difficultylevel' => 'required|string|max:255', // Corrected name to match form
+            'difficultylevel' => 'required|string|max:255',
             'group_size' => 'required|string|max:255',
             'elevation' => 'required|string|max:255',
             'season' => 'required|string|max:255',
@@ -36,6 +37,7 @@ class AdminController extends Controller
            'longitude' => 'required|string|max:255',
            'price' => 'required|integer',
            'tagline' => 'required|string|max:255',
+           'destination_id' => 'nullable|exists:destinations,id',
         ]);
         
         // 2. Validate Relational Data Structure

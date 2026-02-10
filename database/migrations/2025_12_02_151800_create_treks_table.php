@@ -14,6 +14,7 @@ return new class extends Migration
         Schema::create('treks', function (Blueprint $table) {
             $table->id();
             $table->string('trekname');
+            $table->unsignedBigInteger('destination_id')->nullable();
             $table->string('region');
             $table->string('latitude');
             $table->string('longitude');
@@ -25,9 +26,9 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('elevation');
             $table->string('season');
-           
             $table->text('map_route')->nullable();
             $table->timestamps();
+            $table->foreign('destination_id')->references('id')->on('destinations')->onDelete('cascade');
         });
     }
 

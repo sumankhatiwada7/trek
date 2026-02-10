@@ -34,5 +34,12 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+    'esewa' => [
+    'merchant_id' => env('ESEWA_MERCHANT_ID'),
+    'secret' => env('ESEWA_SECRET'),
+    'payment_url' => env('ESEWA_PAYMENT_URL'),
+    'status_url' => env('ESEWA_PAYMENT_STATUS_CHECK_URL'),
+],
+
 
 ];

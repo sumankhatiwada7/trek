@@ -47,6 +47,11 @@
                     <span class="font-serif text-xl font-bold text-foreground">Trek Admin</span>
                 </div>
                 <div class="flex items-center gap-4">
+                    <a href="{{ route('bookings.index') }}">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                    </svg>
+                    bookings
+                    </a>
                     <a href="{{route('destinations.index') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted/60 h-9 px-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         Add destination
@@ -117,7 +122,7 @@
                                     <td class="p-4 align-middle">
                                         <span class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium bg-blue-100 text-blue-800">Active</span>
                                     </td>
-                                    <td class="p-4 align-middle text-right text-muted-foreground">0</td>
+                                    <td class="p-4 align-middle text-right text-muted-foreground">{{ $trek->bookings_count ?? 0 }}</td>
                                     <td class="p-4 align-middle text-right">
                                         <button class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted/60 h-8 w-8">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>

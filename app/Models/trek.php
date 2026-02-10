@@ -20,6 +20,7 @@ class trek extends Model
         'longitude',
         'price',
         'tagline',
+        'destination_id',
     ];
     public function trekImages(){
         return $this->hasMany(trek_images::class,'trek_id');
@@ -30,5 +31,11 @@ class trek extends Model
     }
     public function itinerary(){
         return $this->hasMany(itinerary::class,'trek_id');
+    }
+    public function bookings(){
+        return $this->hasMany(booking::class,'trek_id');
+    }
+    public function destination(){
+        return $this->belongsTo(destination::class,'destination_id');
     }
 }

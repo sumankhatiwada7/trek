@@ -158,6 +158,16 @@
                                 </div>
 
                                 <div class="space-y-2">
+                                    <label for="destination_id" class="label">Destination</label>
+                                    <select id="destination_id" name="destination_id" class="select-trigger h-10">
+                                        <option value="">Select a destination (optional)</option>
+                                        @foreach ($destinations as $destination)
+                                            <option value="{{ $destination->id }}">{{ $destination->destination_name }}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+
+                                <div class="space-y-2">
                                     <label for="description" class="label">Description</label>
                                     <textarea id="description" name="description"
                                         placeholder="Describe the trek experience..." class="textarea h-auto" rows="5"

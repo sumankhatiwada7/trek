@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\trek;
 
 class destination extends Model
 {
@@ -16,4 +17,7 @@ protected $fillable = [
     'tagline',
     'path',
 ];
+public function treks(){
+    return $this->hasMany(trek::class,'destination_id');
+}
 }

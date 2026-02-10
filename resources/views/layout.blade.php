@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ asset('css/index.css') }}">
 
     <title>Trek Guide</title>
-     @vite('resources/css/app.css')
+     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
 </head>
 <body>
