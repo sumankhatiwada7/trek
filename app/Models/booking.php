@@ -22,4 +22,9 @@ class booking extends Model
     {
         return $this->belongsTo(trek::class, 'trek_id');
     }
+
+    public function payments()
+    {
+        return $this->hasMany(Payment::class, 'booking_id');
+    }
 }

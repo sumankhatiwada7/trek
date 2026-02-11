@@ -18,6 +18,10 @@ Route::get('/homepage', function () {
     return view('homepage\layout');
 })->middleware(['auth', 'verified'])->name('homepage');
 
+Route::get('/about', function () {
+    return view('about');
+})->name('about');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
@@ -34,6 +38,7 @@ Route::controller(TrekController::class)->group(function () {
 Route::controller(AdminController::class)->group(function () {
     route::get('/admin','index')->name('admin.index');
     route::get('/admin/create','create')->name('admin.create');
+    route::get('/admin/payments','payments')->name('admin.payments');
     route::post('/admin','store')->name('admin.store');
     
 

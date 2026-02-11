@@ -101,72 +101,78 @@
         <div id="trekGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
 
       @forelse($treks as $trek)
-      <article class="trek-card group bg-white/90 backdrop-blur-lg rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-green-100" data-id="{{ $trek->id }}">
-        <div class="relative h-64 overflow-hidden bg-gradient-to-tr from-green-50 to-emerald-100">
-          @php
-            $img = $trek->trekImages->sortBy('id')->first();
-            $imgUrl = null;
-            if ($img) {
-              $photoPath = $img->photo ?? $img->image_path;
-              if ($photoPath) {
-                $imgUrl = Storage::url($photoPath);
-                if (!$imgUrl || strpos($imgUrl, 'undefined') !== false) {
-                  $imgUrl = asset('storage/' . $photoPath);
+      <article class="trek-card group" data-id="{{ $trek->id }}">
+        <a href="{{ route('treks.show', $trek->id) }}" class="block bg-white rounded-2xl overflow-hidden shadow-lg border border-slate-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+          <div class="relative h-52 overflow-hidden">
+            @php
+              $img = $trek->trekImages->sortBy('id')->first();
+              $imgUrl = null;
+              if ($img) {
+                $photoPath = $img->photo ?? $img->image_path;
+                if ($photoPath) {
+                  $imgUrl = Storage::url($photoPath);
+                  if (!$imgUrl || strpos($imgUrl, 'undefined') !== false) {
+                    $imgUrl = asset('storage/' . $photoPath);
+                  }
                 }
               }
-            }
-            $finalImg = $imgUrl ?: asset('image/alpine.png');
-          @endphp
-          <img src="{{ $finalImg }}" alt="{{ $trek->trekname }}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
-          <div class="absolute top-4 left-4 flex gap-2">
-            <span class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 {{ $trek->difficultylevel === 'Easy' ? 'bg-green-500 text-white' : ($trek->difficultylevel === 'Moderate' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white') }}">
-              <i data-lucide="mountain" class="w-3 h-3"></i>
-              {{ $trek->difficultylevel ?? 'N/A' }}
-            </span>
-            @if($trek->season)
-            <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/80 text-emerald-700 border border-white/50">
-              {{ $trek->season }}
-            </span>
-            @endif
-          </div>
-          <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur rounded-lg px-3 py-2 text-xs font-medium text-emerald-800 flex items-center gap-2 shadow">
-            <i data-lucide="map-pin" class="w-4 h-4"></i>
-            <span>{{ $trek->region ?? 'Unknown region' }}</span>
-          </div>
-        </div>
-
-        <div class="p-6 space-y-4">
-          <h3 class="font-display text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
-            {{ $trek->trekname }}
-          </h3>
-
-          <div class="grid grid-cols-3 gap-3 text-sm text-gray-700">
-            <div class="p-3 rounded-lg bg-emerald-50 text-emerald-700 flex items-center gap-2">
-              <i data-lucide="clock" class="w-4 h-4"></i>
-              <span>{{ $trek->duration ?? 'N/A' }}</span>
+              $finalImg = $imgUrl ?: asset('image/alpine.png');
+              $difficulty = $trek->difficultylevel ?? 'N/A';
+            @endphp
+            <img src="{{ $finalImg }}" alt="{{ $trek->trekname }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+            <div class="absolute top-3 left-3">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $difficulty === 'Easy' ? 'bg-emerald-100 text-emerald-700' : ($difficulty === 'Moderate' ? 'bg-amber-100 text-amber-700' : ($difficulty === 'Challenging' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700')) }}">
+                {{ $difficulty }}
+              </span>
             </div>
-            <div class="p-3 rounded-lg bg-teal-50 text-teal-700 flex items-center gap-2">
-              <i data-lucide="users" class="w-4 h-4"></i>
-              <span>{{ $trek->group_size ?? 'N/A' }}</span>
-            </div>
-            <div class="p-3 rounded-lg bg-amber-50 text-amber-700 flex items-center gap-2">
-              <i data-lucide="trending-up" class="w-4 h-4"></i>
-              <span>{{ $trek->elevation ?? '—' }}</span>
+            <div class="absolute top-3 right-3">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur text-slate-900 border border-white/70">
+                Rs. {{ $trek->price ?? '-' }}
+              </span>
             </div>
           </div>
-
-          <div class="flex items-center justify-between pt-2">
-            <div>
-              <span class="text-sm text-gray-500">Starting from</span>
-              <p class="text-2xl font-bold text-emerald-700">₹{{ $trek->price ?? '-' }}</p>
+          <div class="p-5">
+            <h3 class="font-serif text-lg font-semibold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors">
+              {{ $trek->trekname }}
+            </h3>
+            <p class="text-sm text-slate-600 mb-4 line-clamp-2">
+              {{ $trek->tagline ?? $trek->description ?? 'Explore this trek in the heart of the Himalayas.' }}
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 7v5l3 3"></path>
+                </svg>
+                {{ $trek->duration ?? 'N/A' }}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m8 3 4 8 5-5 5 15H2L8 3z"></path>
+                </svg>
+                {{ $trek->elevation ?? 'N/A' }}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 3v18h18"></path>
+                  <rect x="7" y="13" width="3" height="5"></rect>
+                  <rect x="12" y="9" width="3" height="9"></rect>
+                  <rect x="17" y="5" width="3" height="13"></rect>
+                </svg>
+                {{ $trek->group_size ?? 'N/A' }}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                {{ $trek->season ? \Illuminate\Support\Str::before($trek->season, ',') : 'All Seasons' }}
+              </span>
             </div>
-            <a href="{{ route('treks.show', $trek->id) }}" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-1 shadow">
-              <span>Details</span>
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </a>
           </div>
-        </div>
+        </a>
       </article>
       @empty
       <div class="col-span-3 text-center py-12">
@@ -242,55 +248,72 @@
 
         trekGrid.innerHTML = "";
         treks.forEach(trek => {
+            const difficultyClass = trek.difficulty === 'Easy'
+              ? 'bg-emerald-100 text-emerald-700'
+              : (trek.difficulty === 'Moderate'
+                ? 'bg-amber-100 text-amber-700'
+                : (trek.difficulty === 'Challenging'
+                  ? 'bg-red-100 text-red-700'
+                  : 'bg-slate-100 text-slate-700'));
+
             trekGrid.innerHTML += `
-      <article class="group bg-white/90 backdrop-blur-lg rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 border border-green-100">
-        <div class="relative h-64 overflow-hidden bg-gradient-to-tr from-green-50 to-emerald-100">
-          <img src="${trek.image_url}" alt="${trek.name}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-          <div class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent"></div>
-          <div class="absolute top-4 left-4 flex gap-2">
-            <span class="px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${trek.difficulty === 'Easy' ? 'bg-green-500 text-white' : (trek.difficulty === 'Moderate' ? 'bg-amber-500 text-white' : 'bg-red-500 text-white')}">
-              <i data-lucide="mountain" class="w-3 h-3"></i>
-              ${trek.difficulty ?? 'N/A'}
-            </span>
-            ${trek.season ? `<span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/80 text-emerald-700 border border-white/50">${trek.season}</span>` : ''}
-          </div>
-          <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur rounded-lg px-3 py-2 text-xs font-medium text-emerald-800 flex items-center gap-2 shadow">
-            <i data-lucide="map-pin" class="w-4 h-4"></i>
-            <span>${trek.region ?? 'Unknown region'}</span>
-          </div>
-        </div>
-
-        <div class="p-6 space-y-4">
-          <h3 class="font-display text-xl font-bold text-gray-900 group-hover:text-emerald-700 transition-colors">
-            ${trek.name}
-          </h3>
-
-          <div class="grid grid-cols-3 gap-3 text-sm text-gray-700">
-            <div class="p-3 rounded-lg bg-emerald-50 text-emerald-700 flex items-center gap-2">
-              <i data-lucide="clock" class="w-4 h-4"></i>
-              <span>${trek.duration ?? 'N/A'}</span>
+      <article class="trek-card group">
+        <a href="/treks/${trek.id}" class="block bg-white rounded-2xl overflow-hidden shadow-lg border border-slate-100 hover:shadow-2xl transition-all duration-500 hover:-translate-y-1">
+          <div class="relative h-52 overflow-hidden">
+            <img src="${trek.image_url}" alt="${trek.name}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
+            <div class="absolute top-3 left-3">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold ${difficultyClass}">
+                ${trek.difficulty ?? 'N/A'}
+              </span>
             </div>
-            <div class="p-3 rounded-lg bg-teal-50 text-teal-700 flex items-center gap-2">
-              <i data-lucide="users" class="w-4 h-4"></i>
-              <span>${trek.group_size ?? 'N/A'}</span>
-            </div>
-            <div class="p-3 rounded-lg bg-amber-50 text-amber-700 flex items-center gap-2">
-              <i data-lucide="trending-up" class="w-4 h-4"></i>
-              <span>${trek.elevation ?? '—'}</span>
+            <div class="absolute top-3 right-3">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur text-slate-900 border border-white/70">
+                Rs. ${trek.price ?? '-'}
+              </span>
             </div>
           </div>
-
-          <div class="flex items-center justify-between pt-2">
-            <div>
-              <span class="text-sm text-gray-500">Starting from</span>
-              <p class="text-2xl font-bold text-emerald-700">₹${trek.price ?? '-'}</p>
+          <div class="p-5">
+            <h3 class="font-serif text-lg font-semibold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors">
+              ${trek.name}
+            </h3>
+            <p class="text-sm text-slate-600 mb-4 line-clamp-2">
+              ${trek.tagline ?? trek.description ?? 'Explore this trek in the heart of the Himalayas.'}
+            </p>
+            <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="9"></circle>
+                  <path d="M12 7v5l3 3"></path>
+                </svg>
+                ${trek.duration ?? 'N/A'}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="m8 3 4 8 5-5 5 15H2L8 3z"></path>
+                </svg>
+                ${trek.elevation ?? 'N/A'}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 3v18h18"></path>
+                  <rect x="7" y="13" width="3" height="5"></rect>
+                  <rect x="12" y="9" width="3" height="9"></rect>
+                  <rect x="17" y="5" width="3" height="13"></rect>
+                </svg>
+                ${trek.group_size ?? 'N/A'}
+              </span>
+              <span class="flex items-center gap-1.5">
+                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <line x1="16" y1="2" x2="16" y2="6"></line>
+                  <line x1="8" y1="2" x2="8" y2="6"></line>
+                  <line x1="3" y1="10" x2="21" y2="10"></line>
+                </svg>
+                ${(trek.season || 'All Seasons').split(',')[0]}
+              </span>
             </div>
-            <a href="/treks/${trek.id}" class="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition flex items-center gap-1 shadow">
-              <span>Details</span>
-              <i data-lucide="arrow-right" class="w-4 h-4"></i>
-            </a>
           </div>
-        </div>
+        </a>
       </article>
             `;
         });

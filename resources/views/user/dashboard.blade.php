@@ -194,7 +194,7 @@
                             @endif
 
                             @php
-                                $canCancel = $booking->status === 'pending' && 
+                                $canCancel = $booking->status === 'accepted' &&
                                             $booking->created_at->addDays(2)->isFuture();
                             @endphp
 
@@ -219,20 +219,32 @@
                                 Status last updated: {{ $booking->updated_at->format('M d, Y \a\t H:i') }}
                             </div>
                             
-                            @if($canCancel)
-                            <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" class="inline">
-                                @csrf
-                                @method('POST')
-                                <button type="submit" onclick="return confirm('Are you sure you want to cancel this booking?')" 
-                                    class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition font-medium">
-                                    Cancel Booking
-                                </button>
-                            </form>
+                            @if($booking->status === 'pending')
+                            <span class="text-gray-600 font-medium">
+                                Awaiting admin approval
+                            </span>
                             @elseif($booking->status === 'accepted')
-                            <a href="{{ route('booking.payment', $booking->id) }}" 
-                                class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition font-medium inline-block">
-                                Pay Now
-                            </a>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('booking.payment', $booking->id) }}" 
+                                    class="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg transition font-medium inline-block">
+                                    Pay Now
+                                </a>
+                                @if($canCancel)
+                                <form action="{{ route('bookings.cancel', $booking->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    @method('POST')
+                                    <button type="submit" onclick="return confirm('Are you sure you want to cancel this booking?')" 
+                                        class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-lg transition font-medium">
+                                        Cancel Booking
+                                    </button>
+                                </form>
+                                @else
+                                <div class="text-sm text-gray-600">
+                                    <p class="font-medium text-gray-700">Cancellation period expired</p>
+                                    <p class="text-xs text-gray-500">You can no longer cancel this booking</p>
+                                </div>
+                                @endif
+                            </div>
                             @elseif($booking->status === 'paid')
                             <span class="text-blue-600 font-medium">
                                 Payment Completed
@@ -241,11 +253,6 @@
                             <span class="text-gray-500 font-medium">
                                 {{ $booking->status === 'cancelled' ? 'Booking Cancelled' : 'Booking Rejected' }}
                             </span>
-                            @else
-                            <div class="text-sm text-gray-600">
-                                <p class="font-medium text-gray-700">Cancellation period expired</p>
-                                <p class="text-xs text-gray-500">You can no longer cancel this booking</p>
-                            </div>
                             @endif
                         </div>
                     </div>

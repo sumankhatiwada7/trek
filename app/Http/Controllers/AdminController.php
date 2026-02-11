@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 use App\Models\trek;
+use App\Models\Payment;
 use App\Models\highlights;
 use App\Models\itinerary;
 use Illuminate\Http\Request;
 use App\Helpers\ImageHelper;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 
 class AdminController extends Controller
@@ -17,6 +20,51 @@ class AdminController extends Controller
     public function create(){
         $destinations = \App\Models\destination::all();
         return view("admin.create", compact('destinations'));
+    }
+    public function payments(){
+        $payments = Payment::with(['booking.trek'])
+            ->orderByDesc('created_at')
+            ->get();
+        $monthStart = Carbon::now()->startOfMonth();
+        $monthEnd = Carbon::now()->endOfMonth();
+
+        $monthPayments = $payments->whereBetween('created_at', [$monthStart, $monthEnd]);
+        $monthTotal = $monthPayments->sum('amount');
+        $monthCount = $monthPayments->count();
+        $monthComplete = $monthPayments->where('status', 'COMPLETE')->count();
+        $monthFailed = $monthPayments->where('status', 'FAILED')->count();
+        $monthPending = $monthPayments->where('status', 'PENDING')->count();
+
+        $rangeStart = Carbon::now()->startOfMonth()->subMonths(5);
+        $monthlyRows = Payment::selectRaw("DATE_FORMAT(created_at, '%Y-%m') as ym, SUM(amount) as total, COUNT(*) as count")
+            ->where('created_at', '>=', $rangeStart)
+            ->groupBy('ym')
+            ->orderBy('ym')
+            ->get()
+            ->keyBy('ym');
+
+        $chartLabels = [];
+        $chartTotals = [];
+        $chartCounts = [];
+        for ($i = 5; $i >= 0; $i--) {
+            $month = Carbon::now()->startOfMonth()->subMonths($i);
+            $key = $month->format('Y-m');
+            $chartLabels[] = $month->format('M Y');
+            $chartTotals[] = (float) ($monthlyRows[$key]->total ?? 0);
+            $chartCounts[] = (int) ($monthlyRows[$key]->count ?? 0);
+        }
+
+        return view("admin.payments", compact(
+            'payments',
+            'monthTotal',
+            'monthCount',
+            'monthComplete',
+            'monthFailed',
+            'monthPending',
+            'chartLabels',
+            'chartTotals',
+            'chartCounts'
+        ));
     }
 
     // Removed the unused $id parameter from the method signature

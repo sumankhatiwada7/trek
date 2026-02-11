@@ -45,13 +45,15 @@
       <form id="esewaForm" method="POST" action="{{ config('services.esewa.payment_url') }}">
         <input type="hidden" name="amount" value="{{ $amount }}">
         <input type="hidden" name="tax_amount" value="0">
-        <input type="hidden" name="total_amount" value="{{ $amount }}">
+        <input type="hidden" name="total_amount" value="{{ $totalAmount }}">
         <input type="hidden" name="transaction_uuid" value="{{ $transactionId }}">
         <input type="hidden" name="product_code" value="{{ config('services.esewa.merchant_id') }}">
         <input type="hidden" name="product_service_charge" value="0">
         <input type="hidden" name="product_delivery_charge" value="0">
         <input type="hidden" name="success_url" value="{{ route('esewa.success', [], true) }}">
         <input type="hidden" name="failure_url" value="{{ route('esewa.failure', [], true) }}">
+        <input type="hidden" name="signed_field_names" value="{{ $signedFieldNames }}">
+        <input type="hidden" name="signature" value="{{ $signature }}">
 
         <button type="submit" class="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition">
           Continue to eSewa

@@ -1,5 +1,17 @@
 <!-- Navbar -->
 <nav class="fixed top-0 left-0 right-0 z-50 bg-white/70 backdrop-blur-lg shadow-sm border-b border-gray-200">
+  @php
+    $navClass = function ($active) {
+      return $active
+        ? 'text-green-700 font-semibold'
+        : 'text-gray-600 hover:text-green-700 transition font-medium';
+    };
+    $navClassMobile = function ($active) {
+      return $active
+        ? 'text-green-700 font-semibold py-2'
+        : 'text-gray-700 hover:text-green-700 transition py-2';
+    };
+  @endphp
   <div class="container mx-auto px-4">
     <div class="flex justify-between items-center h-16 md:h-20">
 
@@ -14,11 +26,11 @@
 
       <!-- Desktop Navigation -->
       <div class="hidden md:flex items-center gap-8">
-        <a href="/" class="text-gray-600 hover:text-green-700 transition font-medium">Home</a>
-        <a href="{{ route('treks.index') }}" class="text-gray-600 hover:text-green-700 transition font-medium">Treks</a>
-        <a href="{{ route('front.destinations')}}" class="text-gray-600 hover:text-green-700 transition font-medium">Destinations</a>
-        <a href="/about" class="text-gray-600 hover:text-green-700 transition font-medium">About</a>
-        <a href="/contact" class="text-gray-600 hover:text-green-700 transition font-medium">Contact</a>
+        <a href="/" class="{{ $navClass(request()->is('/')) }}">Home</a>
+        <a href="{{ route('treks.index') }}" class="{{ $navClass(request()->routeIs('treks.index')) }}">Treks</a>
+        <a href="{{ route('front.destinations')}}" class="{{ $navClass(request()->routeIs('front.destinations')) }}">Destinations</a>
+        <a href="{{ route('about') }}" class="{{ $navClass(request()->routeIs('about')) }}">About</a>
+        <a href="/contact" class="{{ $navClass(request()->is('contact')) }}">Contact</a>
       </div>
 
       <!-- Desktop Buttons -->
@@ -104,13 +116,13 @@
     </div>
 
     <!-- Mobile Menu -->
-    <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-gray-200">
+      <div id="mobile-menu" class="hidden md:hidden py-4 border-t border-gray-200">
       <div class="flex flex-col gap-4">
-        <a href="/" class="text-gray-700 hover:text-green-700 transition py-2">Home</a>
-        <a href="{{ route('treks.index') }}" class="text-gray-700 hover:text-green-700 transition py-2">Treks</a>
-        <a href="{{ route('front.destinations') }}" class="text-gray-700 hover:text-green-700 transition py-2">Destinations</a>
-        <a href="/about" class="text-gray-700 hover:text-green-700 transition py-2">About</a>
-        <a href="/contact" class="text-gray-700 hover:text-green-700 transition py-2">Contact</a>
+        <a href="/" class="{{ $navClassMobile(request()->is('/')) }}">Home</a>
+        <a href="{{ route('treks.index') }}" class="{{ $navClassMobile(request()->routeIs('treks.index')) }}">Treks</a>
+        <a href="{{ route('front.destinations') }}" class="{{ $navClassMobile(request()->routeIs('front.destinations')) }}">Destinations</a>
+        <a href="{{ route('about') }}" class="{{ $navClassMobile(request()->routeIs('about')) }}">About</a>
+        <a href="/contact" class="{{ $navClassMobile(request()->is('contact')) }}">Contact</a>
 
         <div class="flex flex-col gap-2 pt-4 border-t border-gray-200">
           @auth

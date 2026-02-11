@@ -14,7 +14,6 @@
     <x-navbar />
    
     <x-herosection />
-    <x-trails />
     <x-mapsection />
     <x-footer/>
    

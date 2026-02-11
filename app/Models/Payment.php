@@ -19,5 +19,9 @@ class Payment extends Model
     protected $casts = [
         'response' => 'array',
     ];
-}
 
+    public function booking()
+    {
+        return $this->belongsTo(booking::class, 'booking_id');
+    }
+}

@@ -52,6 +52,9 @@
                     </svg>
                     bookings
                     </a>
+                    <a href="{{ route('admin.payments') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted/60 h-9 px-3">
+                        Payments
+                    </a>
                     <a href="{{route('destinations.index') }}" class="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-muted/60 h-9 px-3">
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
                         Add destination
