@@ -26,6 +26,8 @@ class DestinationController extends Controller
             'best_season' => ['nullable','string','max:255'],
             'treks_available' => ['nullable','string','max:255'],
             'tagline' => ['nullable','string','max:255'],
+            'latitude' => ['nullable','numeric','between:-90,90'],
+            'longitude' => ['nullable','numeric','between:-180,180'],
             'path' => ['nullable','image','mimes:jpg,jpeg,png,gif,webp','max:4096'],
         ]);
 

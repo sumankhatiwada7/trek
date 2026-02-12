@@ -19,13 +19,13 @@
       theme: {
         extend: {
           colors: {
-            background: "#0b0b0c",
-            foreground: "#ffffff",
-            card: "#111113",
-            border: "#2a2a2e",
-            primary: "#22c55e",
-            accent: "#38bdf8",
-            muted: "#9ca3af"
+            background: "#ffffff",
+            foreground: "#0f172a",
+            card: "#ffffff",
+            border: "#dbeafe",
+            primary: "#2563eb",
+            accent: "#60a5fa",
+            muted: "#64748b"
           }
         }
       }
@@ -39,12 +39,12 @@
 <x-navbar />
 
 <!-- ================= HERO ================= -->
-<section class="relative h-screen flex items-center justify-center overflow-hidden">
+<section class="relative h-screen flex items-center justify-center overflow-hidden bg-white">
   <img
     src="https://images.unsplash.com/photo-1544735716-392fe2489ffa?w=1920&q=80"
     class="absolute inset-0 w-full h-full object-cover"
   />
-  <div class="absolute inset-0 bg-gradient-to-b from-black/50 to-background"></div>
+  <div class="absolute inset-0 bg-gradient-to-b from-white/30 via-white/45 to-white/80"></div>
 
   <div class="relative z-10 text-center px-6 max-w-4xl">
     <div class="inline-flex items-center gap-2 px-5 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary mb-8">
@@ -63,17 +63,17 @@
 
     <div class="flex justify-center gap-4">
       <button onclick="scrollToDestinations()"
-        class="bg-primary text-black px-8 py-4 rounded-lg flex items-center gap-2">
+        class="bg-primary text-white px-8 py-4 rounded-lg flex items-center gap-2 shadow-lg hover:bg-blue-700 transition">
         <i data-lucide="compass"></i> Explore Regions
       </button>
-      <button class="border border-border px-8 py-4 rounded-lg">
+      <button class="border border-blue-200 bg-white/90 text-foreground px-8 py-4 rounded-lg hover:bg-white transition">
         Plan Your Trek
       </button>
     </div>
   </div>
 
   <button onclick="scrollToDestinations()"
-    class="absolute bottom-8 left-1/2 -translate-x-1/2 text-muted flex flex-col items-center">
+    class="absolute bottom-8 left-1/2 -translate-x-1/2 text-slate-600 flex flex-col items-center">
     <span class="text-xs uppercase">Scroll</span>
     <i data-lucide="chevron-down" class="animate-bounce"></i>
   </button>

@@ -143,6 +143,14 @@
 										<label for="treks_available" class="label">Treks Available</label>
 										<input id="treks_available" name="treks_available" type="text" value="{{ old('treks_available') }}" placeholder="e.g., ABC, Ghorepani Poon Hill" class="input" maxlength="200" />
 									</div>
+									<div class="space-y-2">
+										<label for="latitude" class="label">Latitude</label>
+										<input id="latitude" name="latitude" type="number" step="0.000001" value="{{ old('latitude') }}" placeholder="e.g., 28.2096" class="input" />
+									</div>
+									<div class="space-y-2">
+										<label for="longitude" class="label">Longitude</label>
+										<input id="longitude" name="longitude" type="number" step="0.000001" value="{{ old('longitude') }}" placeholder="e.g., 83.9856" class="input" />
+									</div>
 								</div>
 							</div>
 						</div>

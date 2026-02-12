@@ -1,6 +1,9 @@
 @php
   use App\Models\trek;
+  use App\Models\destination;
   use Illuminate\Support\Facades\Storage;
+  use Illuminate\Support\Facades\Http;
+  use Illuminate\Support\Facades\Schema;
   use Illuminate\Support\Str;
 
   $featuredTreks = trek::with('trekImages')->latest()->take(4)->get();
@@ -10,23 +13,79 @@
     ['icon' => 'tree-pine', 'title' => 'Diverse Landscapes', 'desc' => 'From subtropical jungles to Arctic-like glaciers in a single trek.'],
     ['icon' => 'shield', 'title' => 'Expert Guides', 'desc' => 'Certified, experienced guides who know every trail like the back of their hand.'],
   ];
-  $weatherData = [
-    ['icon' => '☀️', 'region' => 'Everest', 'condition' => 'clear skies', 'temp' => 8, 'bestSeason' => true],
-    ['icon' => '🌤️', 'region' => 'Annapurna', 'condition' => 'partly cloudy', 'temp' => 12, 'bestSeason' => true],
-    ['icon' => '🌦️', 'region' => 'Langtang', 'condition' => 'light rain', 'temp' => 10, 'bestSeason' => false],
-    ['icon' => '❄️', 'region' => 'Manaslu', 'condition' => 'snow', 'temp' => -2, 'bestSeason' => false],
-  ];
+
+  $weatherApiKey = env('WEATHERAPI_KEY');
+  $hasCoordinateColumns = Schema::hasColumns('destinations', ['latitude', 'longitude']);
+  $destinationQuery = destination::query()->select('destination_name', 'region', 'best_season');
+
+  if ($hasCoordinateColumns) {
+    $destinationQuery->addSelect('latitude', 'longitude');
+  }
+
+  $allDestinations = $destinationQuery->orderBy('destination_name')->get();
+
+  $weatherData = $allDestinations->map(function ($destination) use ($weatherApiKey, $hasCoordinateColumns) {
+    $conditionText = 'weather unavailable';
+    $temp = null;
+    $icon = 'Cloud';
+    $hasWeather = false;
+
+    if ($hasCoordinateColumns && !empty($weatherApiKey) && !empty($destination->latitude) && !empty($destination->longitude)) {
+      try {
+        $response = Http::timeout(8)->get('http://api.weatherapi.com/v1/current.json', [
+          'key' => $weatherApiKey,
+          'q' => "{$destination->latitude},{$destination->longitude}",
+          'aqi' => 'no',
+        ]);
+
+        if ($response->successful()) {
+          $current = $response->json('current', []);
+          $conditionText = strtolower((string) ($current['condition']['text'] ?? 'clear'));
+          $temp = isset($current['temp_c']) ? round((float) $current['temp_c']) : null;
+          $hasWeather = true;
+
+          if (str_contains($conditionText, 'rain') || str_contains($conditionText, 'drizzle')) {
+            $icon = 'Rain';
+          } elseif (str_contains($conditionText, 'snow') || str_contains($conditionText, 'blizzard')) {
+            $icon = 'Snow';
+          } elseif (str_contains($conditionText, 'cloud') || str_contains($conditionText, 'overcast')) {
+            $icon = 'Cloud';
+          } elseif (str_contains($conditionText, 'sun') || str_contains($conditionText, 'clear')) {
+            $icon = 'Sun';
+          }
+        }
+      } catch (\Throwable $e) {
+        // Keep fallback values.
+      }
+    }
+
+    $bestSeasonText = strtolower((string) ($destination->best_season ?? ''));
+    $monthShort = strtolower(now()->format('M'));
+    $monthLong = strtolower(now()->format('F'));
+    $isBestSeason = $bestSeasonText !== '' && (str_contains($bestSeasonText, $monthShort) || str_contains($bestSeasonText, $monthLong));
+
+    return [
+      'name' => $destination->destination_name,
+      'region' => $destination->region ?: 'Nepal',
+      'condition' => $conditionText,
+      'temp' => $temp,
+      'icon' => $icon,
+      'bestSeason' => $isBestSeason,
+      'hasWeather' => $hasWeather,
+      'hasCoordinates' => $hasCoordinateColumns && !empty($destination->latitude) && !empty($destination->longitude),
+    ];
+  });
 @endphp
 
 <section class="py-20">
   <div class="container mx-auto px-4">
     <div class="flex flex-col sm:flex-row items-start sm:items-end justify-between mb-12 gap-4">
       <div>
-        <p class="text-emerald-600 font-medium text-xs sm:text-sm tracking-[0.35em] uppercase mb-2">Popular Routes</p>
-        <h2 class="font-serif text-3xl md:text-4xl font-bold text-slate-900">Featured Treks</h2>
+        <p class="text-blue-700 font-medium text-xs sm:text-sm tracking-[0.35em] uppercase mb-2">Himalayan Routes</p>
+        <h2 class="font-serif text-3xl md:text-4xl font-bold text-slate-900">Nepali Treks</h2>
       </div>
-      <a href="{{ route('treks.index') }}" class="font-medium border border-emerald-200 text-emerald-700 px-5 py-2.5 rounded-xl hover:bg-emerald-50 transition">
-        View All Treks →
+      <a href="{{ route('treks.index') }}" class="font-medium border border-blue-200 text-blue-700 px-5 py-2.5 rounded-xl hover:bg-blue-50 transition">
+        View All Treks â†’
       </a>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -50,7 +109,7 @@
           <div class="relative h-52 overflow-hidden">
             <img src="{{ $finalImg }}" alt="{{ $trek->trekname }}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
             <div class="absolute top-3 left-3">
-              <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $difficulty === 'Easy' ? 'bg-emerald-100 text-emerald-700' : ($difficulty === 'Moderate' ? 'bg-amber-100 text-amber-700' : ($difficulty === 'Challenging' ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700')) }}">
+              <span class="px-3 py-1 rounded-full text-xs font-semibold {{ $difficulty === 'Easy' ? 'bg-blue-100 text-blue-700' : ($difficulty === 'Moderate' ? 'bg-sky-100 text-sky-700' : ($difficulty === 'Challenging' ? 'bg-indigo-100 text-indigo-700' : 'bg-slate-100 text-slate-700')) }}">
                 {{ $difficulty }}
               </span>
             </div>
@@ -61,7 +120,7 @@
             </div>
           </div>
           <div class="p-5">
-            <h3 class="font-serif text-lg font-semibold text-slate-900 mb-1 group-hover:text-emerald-700 transition-colors">
+            <h3 class="font-serif text-lg font-semibold text-slate-900 mb-1 group-hover:text-blue-700 transition-colors">
               {{ $trek->trekname }}
             </h3>
             <p class="text-sm text-slate-600 mb-4 line-clamp-2">
@@ -69,20 +128,20 @@
             </p>
             <div class="grid grid-cols-2 gap-2 text-xs text-slate-600">
               <span class="flex items-center gap-1.5">
-                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <circle cx="12" cy="12" r="9"></circle>
                   <path d="M12 7v5l3 3"></path>
                 </svg>
                 {{ $trek->duration ?? 'N/A' }}
               </span>
               <span class="flex items-center gap-1.5">
-                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="m8 3 4 8 5-5 5 15H2L8 3z"></path>
                 </svg>
                 {{ $trek->elevation ?? 'N/A' }}
               </span>
               <span class="flex items-center gap-1.5">
-                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M3 3v18h18"></path>
                   <rect x="7" y="13" width="3" height="5"></rect>
                   <rect x="12" y="9" width="3" height="9"></rect>
@@ -91,7 +150,7 @@
                 {{ $trek->group_size ?? 'N/A' }}
               </span>
               <span class="flex items-center gap-1.5">
-                <svg class="h-3.5 w-3.5 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg class="h-3.5 w-3.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <rect x="3" y="4" width="18" height="18" rx="2"></rect>
                   <line x1="16" y1="2" x2="16" y2="6"></line>
                   <line x1="8" y1="2" x2="8" y2="6"></line>
@@ -107,34 +166,34 @@
   </div>
 </section>
 
-<section class="py-20 bg-gradient-to-br from-amber-50 via-white to-rose-50">
+<section class="py-20 bg-gradient-to-br from-blue-50 via-white to-sky-50">
   <div class="container mx-auto px-4">
     <div class="text-center mb-12">
-      <p class="text-emerald-600 font-medium text-xs sm:text-sm tracking-[0.35em] uppercase mb-2">Why Choose Us</p>
+      <p class="text-blue-700 font-medium text-xs sm:text-sm tracking-[0.35em] uppercase mb-2">Why Nepal</p>
       <h2 class="font-serif text-3xl md:text-4xl font-bold text-slate-900">Why Trek Nepal?</h2>
     </div>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
       @foreach($whyReasons as $item)
         <div class="text-center p-6 rounded-2xl bg-white shadow-lg border border-slate-100 hover:shadow-xl transition">
-          <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-emerald-100 mb-4">
+          <div class="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-blue-100 mb-4">
             @if($item['icon'] === 'compass')
-              <svg class="h-7 w-7 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-7 w-7 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="9"></circle>
                 <path d="m16 8-6 2-2 6 6-2 2-6z"></path>
               </svg>
             @elseif($item['icon'] === 'heart')
-              <svg class="h-7 w-7 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-7 w-7 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M20.8 6.6a5.5 5.5 0 0 0-7.8 0L12 7.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 23l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z"></path>
               </svg>
             @elseif($item['icon'] === 'tree-pine')
-              <svg class="h-7 w-7 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-7 w-7 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="m12 3 4 6H8l4-6z"></path>
                 <path d="m12 9 5 7H7l5-7z"></path>
                 <path d="m12 16 6 5H6l6-5z"></path>
                 <path d="M12 21v-2"></path>
               </svg>
             @else
-              <svg class="h-7 w-7 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="h-7 w-7 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 22s8-4 8-10V7l-8-4-8 4v5c0 6 8 10 8 10z"></path>
               </svg>
             @endif
@@ -147,31 +206,49 @@
   </div>
 </section>
 
-<section class="py-20 bg-gradient-to-br from-slate-50 via-white to-emerald-50">
+<section class="py-20 bg-gradient-to-br from-slate-50 via-white to-blue-50">
   <div class="container mx-auto px-4">
     <div class="text-center mb-12">
-      <p class="text-emerald-600 font-medium text-xs sm:text-sm tracking-[0.35em] uppercase mb-2">Live Conditions</p>
+      <p class="text-blue-700 font-medium text-xs sm:text-sm tracking-[0.35em] uppercase mb-2">Live Conditions</p>
       <h2 class="font-serif text-3xl md:text-4xl font-bold text-slate-900">Current Trekking Weather</h2>
       <p class="text-slate-600 mt-3 max-w-lg mx-auto">
-        Plan your adventure with real-time weather updates from major trekking regions.
+        Live weather for all destinations based on saved latitude and longitude.
       </p>
     </div>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
-      @foreach($weatherData as $item)
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
+      @forelse($weatherData as $item)
         <div class="bg-white rounded-2xl p-6 shadow-lg border border-slate-100 text-center hover:shadow-xl transition">
-          <span class="text-4xl mb-3 block">{{ $item['icon'] }}</span>
-          <h3 class="font-serif font-semibold text-slate-900 mb-1">{{ $item['region'] }}</h3>
+          <span class="text-sm mb-3 inline-flex px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 border border-blue-100">{{ $item['icon'] }}</span>
+          <h3 class="font-serif font-semibold text-slate-900 mb-1">{{ $item['name'] }}</h3>
+          <p class="text-xs text-slate-500 uppercase tracking-wide mb-2">{{ $item['region'] }}</p>
           <p class="text-sm text-slate-600 capitalize mb-3">{{ $item['condition'] }}</p>
           <div class="flex items-center justify-center gap-1 mb-3">
-            <svg class="h-4 w-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="h-4 w-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M14 14a4 4 0 1 1-8 0c0-1.5.7-2.9 2-3.8V6a2 2 0 1 1 4 0v4.2c1.3.9 2 2.3 2 3.8z"></path>
               <line x1="12" y1="6" x2="12" y2="14"></line>
             </svg>
-            <span class="text-2xl font-bold text-slate-900">{{ $item['temp'] }}°C</span>
+            <span class="text-2xl font-bold text-slate-900">{{ $item['temp'] !== null ? $item['temp'].'°C' : '--' }}</span>
           </div>
-          @if($item['bestSeason'])
-            <span class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700">
+          @if(!$item['hasCoordinates'])
+            <span class="inline-flex items-center gap-1 text-xs text-amber-700">
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M12 8v5"></path>
+                <circle cx="12" cy="16" r="1"></circle>
+              </svg>
+              Add latitude/longitude
+            </span>
+          @elseif(!$item['hasWeather'])
+            <span class="inline-flex items-center gap-1 text-xs text-slate-500">
+              <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="9"></circle>
+                <path d="M9 9l6 6M15 9l-6 6"></path>
+              </svg>
+              Weather unavailable
+            </span>
+          @elseif($item['bestSeason'])
+            <span class="inline-flex items-center gap-1 text-xs font-medium text-blue-700">
               <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="9"></circle>
                 <path d="M8 12l2.5 2.5L16 9"></path>
@@ -188,23 +265,28 @@
             </span>
           @endif
         </div>
-      @endforeach
+      @empty
+        <div class="col-span-full text-center text-slate-500">No destinations available.</div>
+      @endforelse
     </div>
   </div>
 </section>
 
 <section class="py-20">
   <div class="container mx-auto px-4">
-    <div class="relative rounded-3xl overflow-hidden bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 p-12 md:p-20 text-center">
-      <h2 class="font-serif text-3xl md:text-4xl font-bold text-white mb-4">
+    <div class="relative rounded-3xl overflow-hidden bg-white border border-blue-100 shadow-xl p-12 md:p-20 text-center">
+      <h2 class="font-serif text-3xl md:text-4xl font-bold text-slate-900 mb-4">
         Ready for Your Himalayan Adventure?
       </h2>
-      <p class="text-white/80 text-lg max-w-xl mx-auto mb-8">
+      <p class="text-slate-600 text-lg max-w-xl mx-auto mb-8">
         Join thousands of trekkers who have discovered the magic of Nepal's mountains with our expert team.
       </p>
-      <a href="{{ route('booking.form') }}" class="inline-flex items-center justify-center text-base px-10 py-4 font-semibold bg-white text-emerald-700 rounded-xl shadow-lg hover:bg-emerald-50 transition">
-        Start Planning Your Trek
+      <a href="{{ route('booking.form') }}" class="inline-flex items-center justify-center text-base px-10 py-4 font-semibold bg-blue-700 text-white rounded-xl shadow-lg hover:bg-blue-600 transition">
+        Start Your Nepal Journey
       </a>
     </div>
   </div>
 </section>
+
+
+

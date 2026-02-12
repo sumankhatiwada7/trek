@@ -16,6 +16,8 @@ protected $fillable = [
     'treks_available',
     'tagline',
     'path',
+    'latitude',
+    'longitude',
 ];
 public function treks(){
     return $this->hasMany(trek::class,'destination_id');
